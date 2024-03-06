@@ -16,6 +16,17 @@ inputs:
     ecr-dockerfile-name:
         required: false
         default: Dockerfile
+    codedeploy-app-name:
+        required: true
+    codedeploy-group-name:
+        required: true
+    codedeploy-bucket-name:
+        required: true
+    codedeploy-bucket-key:
+        required: true
+    codedeploy-bucket-type:
+        required: false
+        default: YAML
 
 runs:
     using: composite
@@ -45,4 +56,43 @@ runs:
               dockerfile: ${{ inputs.ecr-dockerfile-name }}
           run: |
               docker buildx build --platform=linux/amd64 --push -t $docker_image -f $dockerfile .
+          shell: bash
+
+        - name: Deploy to Amazon CodeDeploy
+          env:
+              codedeploy_app_name: ${{ inputs.codedeploy-app-name }}
+              codedeploy_group_name: ${{ inputs.codedeploy-group-name }}
+              codedeploy_bucket_name: ${{ inputs.codedeploy-bucket-name }}
+              codedeploy_bucket_key: ${{ inputs.codedeploy-bucket-key }}
+              codedeploy_bucket_type: ${{ inputs.codedeploy-bucket-type }}
+          run: |
+              echo "deployment_id=$(aws deploy create-deployment --application-name $codedeploy_app_name \
+              --deployment-group-name $codedeploy_group_name \
+              --s3-location bucket=$codedeploy_bucket_name,key=$codedeploy_bucket_key,bundleType=$codedeploy_bucket_type \
+              | jq '.deploymentId' | tr -d '"' )" >> $GITHUB_ENV
+          shell: bash
+
+        - name: Wait for CodeDeploy Status
+          env:
+              deployment_id: ${{ env.deployment_id }}
+              wait_time: 10
+          run: |
+              while true; do
+                status=$(aws deploy get-deployment --deployment-id $deployment_id | jq '.deploymentInfo.status' | tr -d '"')
+                echo "$(date +%Y-%m-%dT%H:%M:%S) : Current deployment status : $status"
+
+                case $status in
+                  Created|Queued|InProgress|Baking)
+                    sleep $wait_time
+                    ;;
+
+                    Ready|Succeeded)
+                    exit 0
+                    ;;
+
+                    *)
+                    exit 1
+                    ;;
+                esac
+              done
           shell: bash
