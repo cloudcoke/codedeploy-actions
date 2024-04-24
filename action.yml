@@ -16,7 +16,7 @@ inputs:
         required: true
     codedeploy-bucket-key:
         required: true
-    codedeploy-bucket-type:
+    codedeploy-bundle-type:
         required: false
         default: YAML
 
@@ -36,11 +36,11 @@ runs:
               codedeploy_group_name: ${{ inputs.codedeploy-group-name }}
               codedeploy_bucket_name: ${{ inputs.codedeploy-bucket-name }}
               codedeploy_bucket_key: ${{ inputs.codedeploy-bucket-key }}
-              codedeploy_bucket_type: ${{ inputs.codedeploy-bucket-type }}
+              codedeploy_bundle_type: ${{ inputs.codedeploy-bundle-type }}
           run: |
               echo "deployment_id=$(aws deploy create-deployment --application-name $codedeploy_app_name \
               --deployment-group-name $codedeploy_group_name \
-              --s3-location bucket=$codedeploy_bucket_name,key=$codedeploy_bucket_key,bundleType=$codedeploy_bucket_type \
+              --s3-location bucket=$codedeploy_bucket_name,key=$codedeploy_bucket_key,bundleType=$codedeploy_bundle_type \
               | jq '.deploymentId' | tr -d '"' )" >> $GITHUB_ENV
           shell: bash
 
