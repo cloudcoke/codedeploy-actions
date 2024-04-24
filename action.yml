@@ -30,6 +30,7 @@ runs:
           env:
               timezone: ${{ inputs.timezone }}
           run: sudo timedatectl set-timezone $timezone
+          shell: bash
 
         - name: Configure AWS Credentials
           uses: aws-actions/configure-aws-credentials@v4
