@@ -30,7 +30,7 @@
       # Type of the uploaded revision
       # Default: YAML
       # For example: YAML|JSON
-      codedeploy-bucket-type: ""
+      codedeploy-bundle-type: ""
 ```
 
 # Examples
