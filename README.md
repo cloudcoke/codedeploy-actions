@@ -5,6 +5,10 @@
 ```yaml
 - uses: cloudcoke/codedeploy-ecs@v1
   with:
+      # Set timezone
+      # Default: Asia/Seoul
+      timezone: ""
+
       # AWS IAM access key to use
       aws-access-key-id: ""
 

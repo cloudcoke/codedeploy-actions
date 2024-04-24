@@ -1,6 +1,9 @@
 name: CodeDeploy ECS
 description: Deploying on ECS using CodeDeploy
 inputs:
+    timezone:
+        required: false
+        default: Asia/Seoul
     aws-access-key-id:
         required: true
     aws-secret-access-key:
@@ -23,6 +26,11 @@ inputs:
 runs:
     using: composite
     steps:
+        - name: Set Timezone
+          env:
+              timezone: ${{ inputs.timezone }}
+          run: sudo timedatectl set-timezone $timezone
+
         - name: Configure AWS Credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:
